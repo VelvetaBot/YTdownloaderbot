@@ -43,5 +43,3 @@ async def save_download(user_id, title, size_mb):
 "plan": "free",
 "premium_until": None,
 
-
-
