@@ -35,5 +35,8 @@ async def download_video(url):
         info = ydl.extract_info(url, download=True)
         return ydl.prepare_filename(info)
         await message.reply_video(file_path)
+file_size = os.path.getsize(file_path) / (1024 * 1024)
+await message.reply_video(file_path)
+await save_download(message.from_user.id, os.path.basename(file_path), file_size)
 
 
