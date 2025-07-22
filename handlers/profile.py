@@ -18,4 +18,9 @@ def register(app):
         else:
             text = "User not found!"
         await message.reply_text(text)
+        f"📦 Plan: {'Premium' if user['plan'] == 'premium' else 'Free'}\n"
+f"🎯 Downloads Today: {user['downloads_today']}/{'∞' if user['plan']=='premium' else '3'}\n"
+if user['plan'] == 'premium':
+    text += f"🗓️ Expires on: {user['premium_until']}\n"
+
 
