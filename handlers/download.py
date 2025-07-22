@@ -34,4 +34,6 @@ async def download_video(url):
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=True)
         return ydl.prepare_filename(info)
+        await message.reply_video(file_path)
+
 
