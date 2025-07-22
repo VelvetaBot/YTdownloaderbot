@@ -23,6 +23,34 @@ def register(app):
             os.remove(file_path)
             await increment_download(message.from_user.id)
         except Exception as e:
+            from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from pyrogram import filters
+from pyrogram.types import Message, CallbackQuery
+import os
+from database.users import increment_download, get_user_data, is_premium, save_download
+import yt_dlp
+
+# Button keyboard
+def format_buttons(url):
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton("📹 Video", callback_data=f"video|{url}")],
+        [InlineKeyboardButton("🎵 Audio", callback_data=f"audio|{url}")]
+    ])
+
+def register(app):
+    @app.on_message(filters.text & filters.private)
+    async def ask_format(client, message: Message):
+        url = message.text.strip()
+        if "youtube.com" not in url and "youtu.be" not in url:
+            return
+
+        user = await get_user_data(message.from_user.id)
+        if not await is_premium(message.from_user.id) and user["downloads_today"] >= 3:
+            await message.reply("⚠️ You’ve reached your daily limit (3/day). Use /pay to upgrade.")
+            return
+
+        await message.reply("🔽 Select format to download:", reply_markup=format_buttons(url))
+
             from database.users import save_download
 
             await message.reply(f"❌ Error: {e}")
@@ -131,6 +159,48 @@ async def download_yt(url, format_type="video"):
         filename = ydl.prepare_filename(info)
         size_mb = os.path.getsize(filename) / (1024 * 1024)
         return filename, info.get("title", "Your file"), size_mb
+            @app.on_callback_query()
+    async def handle_format(client, query: CallbackQuery):
+        try:
+            format_type, url = query.data.split("|", 1)
+            await query.message.edit_text("⏳ Downloading, please wait...")
+
+            file_path, title = await download_video(url, format_type)
+            file_size = os.path.getsize(file_path) / (1024 * 1024)
+
+            if format_type == "video":
+                await query.message.reply_video(file_path, caption=title)
+            else:
+                await query.message.reply_audio(file_path, caption=title)
+
+            os.remove(file_path)
+            await increment_download(query.from_user.id)
+            await save_download(query.from_user.id, title, file_size)
+
+        except Exception as e:
+            await query.message.reply(f"❌ Error: {e}")
+async def download_video(url, format_type):
+    ydl_opts = {
+        'outtmpl': 'downloads/%(title)s.%(ext)s',
+        'quiet': True
+    }
+
+    if format_type == "audio":
+        ydl_opts.update({
+            'format': 'bestaudio/best',
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '192'
+            }]
+        })
+    else:  # video
+        ydl_opts.update({'format': 'best[ext=mp4]'})
+
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        info = ydl.extract_info(url, download=True)
+        return ydl.prepare_filename(info), info.get('title', 'Your File')
+
 
 
 
