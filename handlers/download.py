@@ -23,6 +23,8 @@ def register(app):
             os.remove(file_path)
             await increment_download(message.from_user.id)
         except Exception as e:
+            from database.users import save_download
+
             await message.reply(f"❌ Error: {e}")
 
 async def download_video(url):
