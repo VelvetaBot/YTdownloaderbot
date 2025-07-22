@@ -13,4 +13,14 @@ handlers.download.register(app)
 
 print("Bot is running...")
 app.run()
+import handlers.payments
+import handlers.support
+import handlers.privacy
+import handlers.version
+
+handlers.payments.register(app)
+handlers.support.register(app)
+handlers.privacy.register(app)
+handlers.version.register(app)
+
 
