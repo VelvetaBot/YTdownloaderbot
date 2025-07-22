@@ -22,5 +22,7 @@ handlers.payments.register(app)
 handlers.support.register(app)
 handlers.privacy.register(app)
 handlers.version.register(app)
+import handlers.history
+handlers.history.register(app)
 
 
