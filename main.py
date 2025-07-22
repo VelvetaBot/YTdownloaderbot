@@ -24,5 +24,14 @@ handlers.privacy.register(app)
 handlers.version.register(app)
 import handlers.history
 handlers.history.register(app)
+from apscheduler.schedulers.background import BackgroundScheduler
+from reset import reset_downloads
+from datetime import datetime
+import pytz
+
+# Scheduler for resetting download counts
+scheduler = BackgroundScheduler(timezone=pytz.timezone("Asia/Kolkata"))
+scheduler.add_job(reset_downloads, trigger="cron", hour=0, minute=0)  # every day at 00:00 IST
+scheduler.start()
 
 
