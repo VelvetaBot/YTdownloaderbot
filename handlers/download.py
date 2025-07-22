@@ -40,5 +40,15 @@ async def download_video(url):
 file_size = os.path.getsize(file_path) / (1024 * 1024)
 await message.reply_video(file_path)
 await save_download(message.from_user.id, os.path.basename(file_path), file_size)
+if user["downloads_today"] >= 3:
+    await message.reply("⚠️ You’ve reached your daily download limit.")
+    return
+from database.users import is_premium
+
+if not await is_premium(message.from_user.id):
+    if user["downloads_today"] >= 3:
+        await message.reply("⚠️ You’ve reached your daily limit (3/day). Upgrade to premium using /pay.")
+        return
+
 
 
