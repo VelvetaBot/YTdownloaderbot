@@ -42,4 +42,28 @@ async def save_download(user_id, title, size_mb):
 "history": []
 "plan": "free",
 "premium_until": None,
+from datetime import datetime, timedelta
+
+# Check if user is premium
+async def is_premium(user_id):
+    user = users.find_one({"_id": user_id})
+    if not user:
+        return False
+    if user["plan"] == "premium" and user["premium_until"]:
+        expire_date = datetime.strptime(user["premium_until"], "%d.%m.%Y")
+        if datetime.utcnow() <= expire_date:
+            return True
+        else:
+            # Auto downgrade
+            users.update_one({"_id": user_id}, {"$set": {"plan": "free", "premium_until": None}})
+    return False
+
+# Manually make someone premium for X days
+async def make_premium(user_id, days=30):
+    expire = (datetime.utcnow() + timedelta(days=days)).strftime("%d.%m.%Y")
+    users.update_one(
+        {"_id": user_id},
+        {"$set": {"plan": "premium", "premium_until": expire}}
+    )
+
 
