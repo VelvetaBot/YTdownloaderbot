@@ -200,6 +200,12 @@ async def download_video(url, format_type):
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=True)
         return ydl.prepare_filename(info), info.get('title', 'Your File')
+        from database.users import is_banned
+
+if await is_banned(message.from_user.id):
+    await message.reply("🚫 You are banned from using this bot.")
+    return
+
 
 
 
