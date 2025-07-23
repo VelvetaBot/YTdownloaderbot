@@ -71,6 +71,21 @@ async def make_premium(user_id, days=30):
 async def get_language(user_id):
     user = users.find_one({"_id": user_id})
     return user.get("language", "en") if user else "en"
+    # Mark user as banned
+async def ban_user(user_id):
+    users.update_one({"_id": user_id}, {"$set": {"banned": True}})
+
+async def unban_user(user_id):
+    users.update_one({"_id": user_id}, {"$set": {"banned": False}})
+
+async def is_banned(user_id):
+    user = users.find_one({"_id": user_id})
+    return user.get("banned", False)
+
+# Get total user count
+async def count_users():
+    return users.count_documents({})
+
 
 
 
