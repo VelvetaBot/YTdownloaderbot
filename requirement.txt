@@ -1,3 +1,0 @@
-git add requirements.txt
-git commit -m "Added yt-dlp and other requirements"
-git push origin main
