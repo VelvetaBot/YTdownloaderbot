@@ -64,6 +64,13 @@ async def make_premium(user_id, days=30):
     users.update_one(
         {"_id": user_id},
         {"$set": {"plan": "premium", "premium_until": expire}}
-    )
+    (
+        async def set_language(user_id, lang_code):
+    users.update_one({"_id": user_id}, {"$set": {"language": lang_code}})
+
+async def get_language(user_id):
+    user = users.find_one({"_id": user_id})
+    return user.get("language", "en") if user else "en"
+
 
 
