@@ -1,37 +1,24 @@
-from pyrogram import Client
+from pyrogram import Client, filters
 from config import API_ID, API_HASH, BOT_TOKEN
-import handlers.start
-import handlers.profile
-import handlers.download
+import subprocess
 
 app = Client("yt_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
-# Import handlers so they register
-handlers.start.register(app)
-handlers.profile.register(app)
-handlers.download.register(app)
+@app.on_message(filters.command("start"))
+async def start(client, message):
+    await message.reply("👋 Welcome! Send me a YouTube URL to download.")
 
-print("Bot is running...")
+@app.on_message(filters.text & ~filters.command(["start"]))
+async def download_video(client, message):
+    url = message.text.strip()
+    await message.reply("📥 Downloading... Please wait.")
+    try:
+        subprocess.run(["yt-dlp", "-f", "best", url, "-o", "video.%(ext)s"], check=True)
+        for file in os.listdir("."):
+            if file.startswith("video."):
+                await message.reply_document(file)
+                os.remove(file)
+    except Exception as e:
+        await message.reply(f"❌ Error: {e}")
+
 app.run()
-import handlers.payments
-import handlers.support
-import handlers.privacy
-import handlers.version
-
-handlers.payments.register(app)
-handlers.support.register(app)
-handlers.privacy.register(app)
-handlers.version.register(app)
-import handlers.history
-handlers.history.register(app)
-from apscheduler.schedulers.background import BackgroundScheduler
-from reset import reset_downloads
-from datetime import datetime
-import pytz
-
-# Scheduler for resetting download counts
-scheduler = BackgroundScheduler(timezone=pytz.timezone("Asia/Kolkata"))
-scheduler.add_job(reset_downloads, trigger="cron", hour=0, minute=0)  # every day at 00:00 IST
-scheduler.start()
-
-
