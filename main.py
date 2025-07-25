@@ -2,7 +2,7 @@ from pyrogram import Client, filters
 from config import API_ID, API_HASH, BOT_TOKEN
 import subprocess
 
-app = Client("yt_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
+app = Client("yt_bot", api_id=11253846, api_hash=8db4eb50f557faa9a5756e64fb74a51a, bot_token=7523588106:AAHLLbwPCLJwZdKUVL6gA6KNAR_86eHJCWU)
 
 @app.on_message(filters.command("start"))
 async def start(client, message):
