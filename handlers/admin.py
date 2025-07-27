@@ -1,47 +1,38 @@
-from pyrogram import filters
+# admin.py
+
+from pyrogram import Client, filters
 from pyrogram.types import Message
-from config import ADMIN_ID
-from database.users import ban_user, unban_user, make_premium, count_users
+from users import reset_user_limit, get_all_users
+import datetime
 
-def register(app):
-    @app.on_message(filters.command("admin") & filters.user(ADMIN_ID))
-    async def admin_menu(client, message: Message):
-        await message.reply(
-            "🛠️ **Admin Panel**\n\n"
-            "/users - Total users\n"
-            "/makepremium <user_id> - Upgrade user\n"
-            "/ban <user_id> - Ban user\n"
-            "/unban <user_id> - Unban user"
-        )
+ADMIN_ID = 883128927  # Replace with your Telegram user ID
 
-    @app.on_message(filters.command("users") & filters.user(ADMIN_ID))
-    async def total_users(client, message: Message):
-        total = await count_users()
-        await message.reply(f"👥 Total users: {total}")
+@Client.on_message(filters.command("reset") & filters.user(ADMIN_ID))
+async def reset_limits(client, message: Message):
+    reset_user_limit()
+    await message.reply("✅ All user download limits have been reset for today.")
 
-    @app.on_message(filters.command("makepremium") & filters.user(ADMIN_ID))
-    async def make_premium_cmd(client, message: Message):
+@Client.on_message(filters.command("users") & filters.user(ADMIN_ID))
+async def user_list(client, message: Message):
+    users = get_all_users()
+    await message.reply(f"👥 Total Users: {len(users)}")
+
+@Client.on_message(filters.command("broadcast") & filters.user(ADMIN_ID))
+async def broadcast(client, message: Message):
+    if not message.reply_to_message:
+        await message.reply("📢 Reply to a message you want to broadcast.")
+        return
+
+    text = message.reply_to_message.text
+    users = get_all_users()
+    success = 0
+    fail = 0
+
+    for user in users:
         try:
-            user_id = int(message.text.split()[1])
-            await make_premium(user_id)
-            await message.reply(f"✅ User `{user_id}` is now Premium.")
+            await client.send_message(user["user_id"], text)
+            success += 1
         except:
-            await message.reply("❌ Usage: /makepremium <user_id>")
+            fail += 1
 
-    @app.on_message(filters.command("ban") & filters.user(ADMIN_ID))
-    async def ban_cmd(client, message: Message):
-        try:
-            user_id = int(message.text.split()[1])
-            await ban_user(user_id)
-            await message.reply(f"🚫 User `{user_id}` has been banned.")
-        except:
-            await message.reply("❌ Usage: /ban <user_id>")
-
-    @app.on_message(filters.command("unban") & filters.user(ADMIN_ID))
-    async def unban_cmd(client, message: Message):
-        try:
-            user_id = int(message.text.split()[1])
-            await unban_user(user_id)
-            await message.reply(f"✅ User `{user_id}` has been unbanned.")
-        except:
-            await message.reply("❌ Usage: /unban <user_id>")
+    await message.reply(f"✅ Broadcast sent!\nSuccess: {success} | Failed: {fail}")
