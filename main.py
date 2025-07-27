@@ -1,19 +1,25 @@
+# main.py
+
+from pyrogram import Client
+from config import API_ID, API_HASH, BOT_TOKEN, BOT_NAME
+
 import logging
-from pyrogram import Client, filters
 
-from config import API_ID, API_HASH, BOT_TOKEN
+# Logging
+logging.basicConfig(
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
+)
+LOGGER = logging.getLogger(__name__)
 
-app = Client("yt_downloader_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
+# Initialize Pyrogram Client
+bot = Client(
+    name=BOT_NAME,
+    api_id=API_ID,
+    api_hash=API_HASH,
+    bot_token=BOT_TOKEN,
+    plugins=dict(root="plugins")
+)
 
-logging.basicConfig(level=logging.INFO)
-
-@app.on_message(filters.command("start"))
-async def start(client, message):
-    await message.reply_text("👋 Hello! Send me a YouTube link and I will download it for you.")
-
-@app.on_message(filters.text & ~filters.command("start"))
-async def download(client, message):
-    url = message.text
-    await message.reply_text(f"⏳ Starting download for: {url}\n(This feature will be added soon!)")
-
-app.run()
+if __name__ == "__main__":
+    LOGGER.info(f"Starting bot: {BOT_NAME}...")
+    bot.run()
