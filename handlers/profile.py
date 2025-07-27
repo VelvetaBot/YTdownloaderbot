@@ -1,26 +1,24 @@
-from pyrogram import filters
+# profile.py
+
+from pyrogram import Client, filters
 from pyrogram.types import Message
-from database.users import get_user_data
+from users import get_user_data
 
-def register(app):
-    @app.on_message(filters.command("profile"))
-    async def profile(client, message: Message):
-        user = await get_user_data(message.from_user.id)
-        if user:
-            text = (
-                f"📄 **Your Profile**\n\n"
-                f"🆔 Unique ID: `{user['_id']}`\n"
-                f"👤 Name: {user['first_name']} {user['last_name']}\n"
-                f"📦 Downloads today: {user['downloads_today']}/3\n"
-                f"🗓️ Added: {user['join_date']}\n\n"
-                "⚠️ The bot stores only this basic data."
-            )
-        else:
-            text = "User not found!"
-        await message.reply_text(text)
-        f"📦 Plan: {'Premium' if user['plan'] == 'premium' else 'Free'}\n"
-f"🎯 Downloads Today: {user['downloads_today']}/{'∞' if user['plan']=='premium' else '3'}\n"
-if user['plan'] == 'premium':
-    text += f"🗓️ Expires on: {user['premium_until']}\n"
+@Client.on_message(filters.command("profile"))
+async def profile(client, message: Message):
+    user_id = message.from_user.id
+    data = get_user_data(user_id)
 
+    is_premium = "✅ Yes" if data["is_premium"] else "❌ No"
+    downloads = data["downloads"]
+    max_limit = "∞ Unlimited" if data["is_premium"] else "5 per day"
 
+    text = (
+        f"👤 *Your Profile*\n\n"
+        f"🆔 ID: `{user_id}`\n"
+        f"💎 Premium: {is_premium}\n"
+        f"📥 Downloads Today: {downloads}/{max_limit}\n"
+        f"🎉 Thank you for using *Velveta Bots*!"
+    )
+
+    await message.reply(text, quote=True, parse_mode="markdown")
