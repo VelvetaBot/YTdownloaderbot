@@ -1,27 +1,36 @@
 # payments.py
 
 from pyrogram import Client, filters
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
+from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
+from users import set_premium_pending, is_premium
 
-@Client.on_message(filters.command("upgrade"))
-async def upgrade(client, message: Message):
-    text = (
-        "💎 *Upgrade to Premium!*\n\n"
-        "Unlock all the features:\n"
+@Client.on_message(filters.command("buy") & filters.private)
+async def buy_premium(client, message: Message):
+    if is_premium(message.from_user.id):
+        await message.reply("✅ You already have Premium access!")
+        return
+
+    set_premium_pending(message.from_user.id)
+
+    await message.reply(
+        "💎 *Upgrade to Velvetta Premium!*\n\n"
         "🚀 Unlimited downloads\n"
-        "📸 Instagram Link Downloader access\n"
-        "⚡ Super-fast speed\n\n"
-        "*Offer Price:* ₹49 for 60 days (Regular ₹99)\n\n"
-        "📩 After payment, please send a screenshot of the transaction here to activate Premium access.\n"
-        "✅ We will verify it manually.\n\n"
-        "For help, contact @Yaswanth_venkata_naga_sai"
+        "📲 Access to Instagram Link Downloader\n"
+        "⚡ Faster speeds\n"
+        "🎁 Offer: ₹49 for 60 days (Regular ₹99)\n\n"
+        "📸 After payment, please send the *screenshot of your transaction* here.\n"
+        "Your premium will be activated after verification.",
+        parse_mode="markdown",
+        reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton("📨 Contact Developer", url="https://t.me/Yaswanth_venkata_naga_sai")]
+        ])
     )
 
-    keyboard = InlineKeyboardMarkup(
-        [
-            [InlineKeyboardButton("📩 Contact Support", url="https://t.me/Yaswanth_venkata_naga_sai")],
-            # Add payment link button later
-        ]
-    )
-
-    await message.reply(text, reply_markup=keyboard, parse_mode="markdown", quote=True)
+@Client.on_message(filters.private & filters.photo)
+async def handle_screenshot(client, message: Message):
+    if not is_premium(message.from_user.id):
+        await message.forward(chat_id=883128927)  # Admin ID
+        await message.reply(
+            "✅ Screenshot received. Please wait while we verify and activate your Premium.\n"
+            "⏳ Typically takes a few minutes."
+        )
