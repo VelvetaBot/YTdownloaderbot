@@ -1,22 +1,18 @@
-from pyrogram import filters
-from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
-from database.users import set_language
+# language.py
 
-def register(app):
-    @app.on_message(filters.command("language"))
-    async def language(client, message: Message):
-        keyboard = InlineKeyboardMarkup([
-            [InlineKeyboardButton("English", callback_data="lang|en")],
-            [InlineKeyboardButton("हिंदी", callback_data="lang|hi")],
-            [InlineKeyboardButton("తెలుగు", callback_data="lang|te")]
-        ])
-        await message.reply("🌐 Choose your language:", reply_markup=keyboard)
+from en import STRINGS as ENGLISH
+from hi import STRINGS as HINDI
+from te import STRINGS as TELUGU
 
-    @app.on_callback_query()
-    async def handle_lang_select(client, query):
-        if query.data.startswith("lang|"):
-            code = query.data.split("|")[1]
-            await set_language(query.from_user.id, code)
-            from languages import en, hi, te
-            langs = {"en": en.lang, "hi": hi.lang, "te": te.lang}
-            await query.message.edit_text(langs[code]["language_selected"])
+# Default language
+DEFAULT_LANGUAGE = "en"
+
+# Supported language codes
+SUPPORTED_LANGUAGES = {
+    "en": ENGLISH,
+    "hi": HINDI,
+    "te": TELUGU
+}
+
+def get_strings(lang_code: str):
+    return SUPPORTED_LANGUAGES.get(lang_code, ENGLISH)
