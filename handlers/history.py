@@ -1,20 +1,28 @@
-from pyrogram import filters
+# history.py
+
+from pyrogram import Client, filters
 from pyrogram.types import Message
-from database.users import get_user_data
 
-def register(app):
-    @app.on_message(filters.command("history"))
-    async def history(client, message: Message):
-        user = await get_user_data(message.from_user.id)
-        if not user or "history" not in user or len(user["history"]) == 0:
-            await message.reply("📭 You don’t have any download history yet.")
-            return
+# Temporary in-memory history store (clears when bot restarts)
+user_history = {}
 
-        history_text = "📥 **Your Download History:**\n\n"
-        for i, item in enumerate(reversed(user["history"][-10:]), 1):
-            history_text += (
-                f"{i}. 🎬 `{item['title']}`\n"
-                f"   📦 {item['size']} | 🕒 {item['time']}\n\n"
-            )
+@Client.on_message(filters.command("history"))
+async def show_history(client, message: Message):
+    user_id = message.from_user.id
+    history = user_history.get(user_id, [])
 
-        await message.reply(history_text)
+    if not history:
+        await message.reply("📭 You have no download history yet.")
+        return
+
+    text = "📚 *Your Download History:*\n\n"
+    for i, item in enumerate(history[-10:], 1):  # Show last 10 items
+        text += f"{i}. {item}\n"
+
+    await message.reply(text, parse_mode="markdown")
+
+# Use this to add a download to the user's history
+def add_to_history(user_id: int, video_title: str):
+    if user_id not in user_history:
+        user_history[user_id] = []
+    user_history[user_id].append(video_title)
